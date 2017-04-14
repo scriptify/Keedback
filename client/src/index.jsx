@@ -9,14 +9,12 @@ import dataStore from './stores/DataStore';
 
 import App from './components/App';
 
-import FeatureAdder from './components/FeatureAdder';
-
 injectTapEventPlugin();
 
 ReactDOM.render(
   <Provider uiStore={uiStore} dataStore={dataStore}>
     <MuiThemeProvider>
-      <FeatureAdder onFeatureAdded={f => console.log(f)} />
+      <App />
     </MuiThemeProvider>
   </Provider>,
   document.querySelector(`#app`)
