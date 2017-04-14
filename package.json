@@ -46,9 +46,13 @@
     "webpack-merge": "*"
   },
   "dependencies": {
+    "bcrypt": "^1.0.2",
+    "body-parser": "^1.17.1",
+    "cookie-parser": "^1.4.3",
     "express": "^4.15.2",
     "mysql": "^2.13.0",
     "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "react-dom": "^15.4.2",
+    "uuid": "^3.0.1"
   }
 }

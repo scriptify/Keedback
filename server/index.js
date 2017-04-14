@@ -1,45 +1,304 @@
 const express = require(`express`);
+const bodyParser = require(`body-parser`);
+const cookieParser = require(`cookie-parser`);
+const { v4 } = require(`uuid`);
+const { hash, compare } = require(`bcrypt`);
 const path = require(`path`);
 
-const { query, queryError, error } = require(`./util.js`);
+const { query, error, handleQueryPromise, requireLogin } = require(`./util.js`);
 
 const app = express();
 
+app.use(bodyParser.json());
+app.use(cookieParser(`unicorns like red black'n'red cookies. unicors know what they do`));
 app.use(`/admin`, express.static(path.join(__dirname, `../client/build`)));
+
+function generateKeys(num, res) {
+  const promises = [];
+  const keys = [];
+  for (let i = 0; i < num; i++) {
+    const currKey = v4();
+    const obj = {
+      value: currKey
+    };
+    keys.push(obj);
+    const promise = query(`INSERT INTO AccessKey SET ?;`, obj);
+    promises.push(promise);
+  }
+  handleQueryPromise(Promise.all(promises), res, () => {
+    res.json(keys);
+  });
+}
+
+function login(res, isAdmin = false, UID) {
+  res.cookie(`session`, {
+    UID,
+    isAdmin
+  },
+  { maxAge: 48 * 60 * 60 * 1000 });
+}
 
 app.post(`/api/:method`, (req, res) => {
   const { method } = req.params;
   switch (method) {
-    case `getVersion`:
-      query(`SELECT version FROM Version ORDER BY VID DESC LIMIT 1;`)
-        .then((rows) => {
-          res.json(rows[0]);
-        })
-        .catch(err => queryError(err, res));
-      break;
 
-    case `getVersionInfo`:
-      query(`SELECT version, title, description FROM Version ORDER BY VID DESC LIMIT 1;`)
-      .then((rows) => {
+    case `login`: {
+      const { username, password } = req.body;
+      const promise = query(`SELECT pwHash, isAdmin, UID FROM User WHERE username = ?;`, [username]);
+      handleQueryPromise(promise, res, (rows) => {
+        if (rows.length === 0)
+          error(res, `No such user.`);
+        const { pwHash, isAdmin, UID } = rows[0];
+
+        compare(password, pwHash.toString(`ascii`))
+          .then((isAuth) => {
+            if (!isAuth)
+              error(res, `Wrong password.`);
+            else {
+              login(res, isAdmin, UID);
+              res.json({ success: true, isAdmin });
+            }
+          });
+      });
+      break;
+    }
+
+    case `getVersion`: {
+      requireLogin(req, res);
+      const promise = query(`SELECT version FROM Version ORDER BY VID DESC LIMIT 1;`);
+      handleQueryPromise(promise, res, (rows) => {
         res.json(rows[0]);
-      })
-      .catch(err => queryError(err, res));
+      });
       break;
+    }
 
-    /* case `setVersion`: {
-      const { version, title, description } = req.params;
-      preparedQuery(`INSERT INTO Version (version, title, description) VALUES (??, ??, ??)`, [
+    case `getVersionInfo`: {
+      requireLogin(req, res);
+      const promise = query(`SELECT version, title, description FROM Version ORDER BY VID DESC LIMIT 1;`);
+      handleQueryPromise(promise, res, (rows) => {
+        res.json(rows[0]);
+      });
+      break;
+    }
+
+    case `setVersion`: {
+      requireLogin(req, res, true);
+      const { version, title, description } = req.body;
+      const promise = query(`INSERT INTO Version SET ?;`, {
         version,
         title,
-        description,
-        true
-      ])
-      .then(() => res.json({ message: `success` }));
+        description
+      });
+      handleQueryPromise(promise, res);
       break;
-    }*/
+    }
+
+    case `generateKeys`: {
+      requireLogin(req, res, true);
+      const { num } = req.body;
+      generateKeys(num, res);
+      break;
+    }
+
+    case `getKeys`: {
+      requireLogin(req, res, true);
+      const promise = query(`SELECT value, username AS takenBy FROM AccessKey AS ak LEFT OUTER JOIN User AS u ON (ak.takenBy = u.UID);`);
+      handleQueryPromise(promise, res, (rows) => {
+        res.json(rows);
+      });
+      break;
+    }
+
+    case `register`: {
+      const { username, password, accessKey } = req.body;
+      const promise = query(`SELECT * FROM AccessKey WHERE value = ? AND takenBy IS NULL;`, [accessKey]);
+      handleQueryPromise(promise, res, (rows) => {
+        if (rows.length === 0) {
+          error(res, `Invalid access key!`);
+          return;
+        }
+
+        hash(password, 5)
+          .then((pwHash) => {
+            const insertPromise = query(`INSERT INTO User SET ?;`, {
+              username,
+              pwHash
+            });
+            handleQueryPromise(insertPromise, res, ({ insertId }) => {
+              const setKeyPromise = query(`UPDATE AccessKey SET takenBy = ? WHERE value = ?;`, [insertId, accessKey]);
+              handleQueryPromise(setKeyPromise, res, () => {
+                const keyManagementPromise = query(`SELECT * FROM KeyManagement;`);
+                const numKeysPromise = query(`SELECT COUNT(KID) AS keyNum FROM AccessKey;`);
+                Promise.all([keyManagementPromise, numKeysPromise])
+                  .then(([keyManagement, numKeys]) => {
+                    const { returnOnRegister, maxKeys } = keyManagement[keyManagement.length - 1];
+                    const { keyNum } = numKeys[0];
+                    if (keyNum < maxKeys) {
+                      login(res, false, insertId);
+                      generateKeys(returnOnRegister, res);
+                    } else
+                      error(res, `Sorry, maximum numbers of keys reached. But registered successfully!`);
+                  });
+              });
+            });
+          });
+      });
+      break;
+    }
+
+    case `setMaxKeys`: {
+      requireLogin(req, res, true);
+      const { num } = req.body;
+      const promise = query(`UPDATE KeyManagement SET maxKeys = ?;`, [num]);
+      handleQueryPromise(promise, res);
+      break;
+    }
+
+    case `setReturnOnRegisterKeyNum`: {
+      requireLogin(req, res, true);
+      const { num } = req.body;
+      const promise = query(`UPDATE KeyManagement SET returnOnRegister = ?;`, [num]);
+      handleQueryPromise(promise, res);
+      break;
+    }
+
+    case `addDevelopmentFeature`: {
+      requireLogin(req, res, true);
+      const { title, description } = req.body;
+      const promise = query(`INSERT INTO Feature SET ?;`, {
+        title,
+        description
+      });
+      handleQueryPromise(promise, res, (rows) => {
+        const promise1 = query(`INSERT INTO DevelopmentFeature SET FID = ?;`, [rows.insertId]);
+        handleQueryPromise(promise1, res);
+      });
+      break;
+    }
+
+    case `getDevelopmentFeatures`: {
+      requireLogin(req, res);
+      const promise = query(`SELECT * FROM DevelopmentFeature NATURAL JOIN Feature;`);
+      handleQueryPromise(promise, res, rows => res.json(rows));
+      break;
+    }
+
+    case `addNewFeature`: {
+      requireLogin(req, res, true);
+      const { title, description } = req.body;
+      const promise = query(`INSERT INTO Feature SET ?;`, {
+        title,
+        description
+      });
+      handleQueryPromise(promise, res, (rows) => {
+        const promise1 = query(`INSERT INTO NewFeature SET FID = ?;`, [rows.insertId]);
+        handleQueryPromise(promise1, res);
+      });
+      break;
+    }
+
+    case `getNewFeatures`: {
+      requireLogin(req, res);
+      const promise = query(`SELECT NFID, COUNT(NFID) AS votes FROM Votes AS v NATURAL JOIN (SELECT * FROM NewFeature NATURAL JOIN Feature) AS temp GROUP BY NFID;`);
+      handleQueryPromise(promise, res, (features) => {
+        const promise1 = query(`SELECT NFID FROM Votes WHERE UID = ?;`, [res.cookies.UID]);
+        handleQueryPromise(promise1, res, (votes) => {
+          features = features.map((feature) => {
+            const filtered = votes.filter(v => v.NFID === feature.NFID);
+            let hasVoted = false;
+            if (filtered.length > 0)
+              hasVoted = true;
+            return Object.assign({}, feature, {
+              hasVoted
+            });
+          });
+          res.json(features);
+        });
+      });
+      break;
+    }
+
+    case `moveNewFeatureToDevelopmentStage`: {
+      requireLogin(req, res, true);
+      const { NFID } = req.body;
+      const promise = query(`SELECT FID FROM NewFeature WHERE NFID = ?;`, [NFID]);
+      handleQueryPromise(promise, res, (rows) => {
+        if (rows.length === 0)
+          error(res, `No such new feature!`);
+        const { FID } = rows[0];
+        const promise1 = query(`DELETE FROM NewFeature WHERE NFID = ?;`, [NFID]);
+        handleQueryPromise(res, promise1, () => {
+          const promise2 = query(`INSERT INTO DevelopmentFeature SET FID = ?;`, [FID]);
+          handleQueryPromise(res, promise2);
+        });
+      });
+      break;
+    }
+
+    case `deleteDevelopmentFeature`: {
+      requireLogin(req, res, true);
+      const { DFID } = req.body;
+      const promise = query(`DELETE FROM DevelopmentFeature WHERE DFID = ?;`, [DFID]);
+      handleQueryPromise(promise, res);
+      break;
+    }
+
+    case `deleteNewFeature`: {
+      requireLogin(req, res, true);
+      const { NFID } = req.body;
+      const promise = query(`DELETE FROM NewFeature WHERE NFID = ?;`, [NFID]);
+      handleQueryPromise(promise, res);
+      break;
+    }
+
+    case `upvoteFeature`: {
+      requireLogin(req, res);
+      const { NFID } = req.body;
+      const { UID } = res.cookies;
+
+      const promise = query(`INSERT INTO Votes SET ?;`, { NFID, UID });
+      handleQueryPromise(promise, res);
+      break;
+    }
+
+    case `createFeddback`: {
+      requireLogin(req, res);
+      const { title, text, type, email } = req.body;
+
+      const promise = query(`INSERT INTO Feedback SET ?;`, {
+        title,
+        userText: text,
+        type,
+        email
+      });
+      handleQueryPromise(promise, res);
+      break;
+    }
+
+    case `processFeedback`: {
+      requireLogin(req, res, true);
+      const { FBID } = req.body;
+      const promise = query(`UPDATE Feedback SET processed = TRUE WHERE FBID = ?;`, [FBID]);
+      handleQueryPromise(promise, res);
+      break;
+    }
+
+    case `getFeedback`: {
+      requireLogin(req, res, true);
+      const promise = query(`SELECT * FROM Feedback;`);
+      handleQueryPromise(promise, res, rows => res.json(rows));
+      break;
+    }
+
+    case `isLoggedIn`: {
+      res.json({
+        isLoggedIn: (req.cookies.session.UID !== null && req.cookies.session.UID !== undefined)
+      });
+      break;
+    }
 
     default:
-      error(`Unkown method: ${method}`);
+      error(res, `Unkown method: ${method}`);
   }
 });
 
