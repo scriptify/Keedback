@@ -1,0 +1,8 @@
+@import "../base.css";
+
+.features {
+  & .add {
+     display: flex;
+     flex-flow: column;
+  }
+}

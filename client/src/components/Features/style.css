@@ -1,0 +1,29 @@
+@import "../base.css";
+
+.features {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+
+  & .add {
+     display: flex;
+     flex-flow: column;
+  }
+
+  & .development, & .new {
+    width: 50%;
+    & .title {
+      text-align: center;
+      font-size: 20pt;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+    }
+
+    & .card {
+      padding: 10px;
+    }
+
+  }
+}

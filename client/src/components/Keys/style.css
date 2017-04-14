@@ -1,0 +1,23 @@
+@import "../base.css";
+
+.keys {
+  overflow-y: auto;
+  & .params {
+    display: flex;
+    justify-content: space-around;
+    & .param {
+      display: flex;
+      flex-flow: column;
+      justify-content: space-between;
+    }
+  }
+
+  & .table {
+    margin-top: 10px;
+  }
+
+  & .info {
+    text-align: center;
+    padding: 10px;
+  }
+}

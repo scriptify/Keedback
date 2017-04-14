@@ -46,9 +46,6 @@ const COMMON_CONFIGURATION = {
           },
           {
             loader: `postcss-loader`
-          },
-          {
-            loader: `eslint-loader`
           }
         ]
       },

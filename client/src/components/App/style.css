@@ -1,0 +1,13 @@
+@import "../base.css";
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+
+  & .title-bar {
+    height: 64px;
+  }
+
+}

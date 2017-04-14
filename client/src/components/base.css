@@ -1,0 +1,16 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+
+}
+
+html, body, #app {
+  height: 100%;
+}
+
+body {
+  font-family: Roboto, Calibri, Ubuntu, sans;
+}

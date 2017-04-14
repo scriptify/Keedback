@@ -199,9 +199,9 @@ app.post(`/api/:method`, (req, res) => {
 
     case `getNewFeatures`: {
       requireLogin(req, res);
-      const promise = query(`SELECT NFID, COUNT(NFID) AS votes FROM Votes AS v NATURAL JOIN (SELECT * FROM NewFeature NATURAL JOIN Feature) AS temp GROUP BY NFID;`);
+      const promise = query(`SELECT NFID, COUNT(NFID) AS votes FROM Vote AS v NATURAL JOIN (SELECT * FROM NewFeature NATURAL JOIN Feature) AS temp GROUP BY NFID;`);
       handleQueryPromise(promise, res, (features) => {
-        const promise1 = query(`SELECT NFID FROM Votes WHERE UID = ?;`, [res.cookies.UID]);
+        const promise1 = query(`SELECT NFID FROM Vote WHERE UID = ?;`, [req.cookies.session.UID]);
         handleQueryPromise(promise1, res, (votes) => {
           features = features.map((feature) => {
             const filtered = votes.filter(v => v.NFID === feature.NFID);
@@ -254,9 +254,9 @@ app.post(`/api/:method`, (req, res) => {
     case `upvoteFeature`: {
       requireLogin(req, res);
       const { NFID } = req.body;
-      const { UID } = res.cookies;
+      const { UID } = req.cookies.session;
 
-      const promise = query(`INSERT INTO Votes SET ?;`, { NFID, UID });
+      const promise = query(`INSERT INTO Vote SET ?;`, { NFID, UID });
       handleQueryPromise(promise, res);
       break;
     }
@@ -292,7 +292,7 @@ app.post(`/api/:method`, (req, res) => {
 
     case `isLoggedIn`: {
       res.json({
-        isLoggedIn: (req.cookies.session.UID !== null && req.cookies.session.UID !== undefined)
+        isLoggedIn: (req.cookies && req.cookies.session && req.cookies.session.UID !== null && req.cookies.session.UID !== undefined)
       });
       break;
     }

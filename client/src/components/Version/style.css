@@ -1,0 +1,9 @@
+@import "../base.css";
+
+.version {
+  overflow-y: auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
