@@ -33,6 +33,8 @@ export default class Login extends Component {
   render() {
     return (
       <div className={`login`}>
+        <h1>Keedback</h1>
+        <h2>Please login.</h2>
         <TextField hintText={`username`} onInput={this.onUsernameChange} />
         <TextField hintText={`password`} type={`password`} onInput={this.onPasswordChange} />
         <RaisedButton label={`Login`} primary onTouchTap={() => this.props.onLogin(this.state.username, this.state.password)} />

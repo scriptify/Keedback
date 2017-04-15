@@ -324,6 +324,13 @@ app.post(`/api/:method`, (req, res) => {
       break;
     }
 
+    case `logout`: {
+      requireLogin(req, res);
+      res.clearCookie(`session`);
+      res.json({ success: true });
+      break;
+    }
+
     default:
       error(res, `Unkown method: ${method}`);
   }

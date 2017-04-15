@@ -14,6 +14,7 @@ class DataStore {
   @observable newFeatures = [];
   @observable feedback = [];
   @observable keys = [];
+  @observable version = {};
   @observable maxKeys = 0;
   @observable returnOnRegisterKeys = 0;
 
@@ -184,43 +185,70 @@ class DataStore {
   @computed get unprocessedFeedbackNum() {
     return this.feedback.filter(f => !f.processed).length;
   }
+
+  @action(`set version info`) setVersion(obj) {
+    this.version = obj;
+  }
+
+  @action(`alter version`) alterVersion({ version, title, description }) {
+    api(`setVersion`, { version, title, description })
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj)) {
+          uiStore.setMessage(`New version ${version} was set.`);
+          this.version = {
+            version,
+            title,
+            description
+          };
+        }
+      });
+  }
+
+  setup() {
+    // Set developmentFeatures
+    api(`getDevelopmentFeatures`)
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj))
+          this.setDevelopmentFeatures(obj);
+      });
+
+    // Set newFeatures
+    api(`getNewFeatures`)
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj))
+          this.setNewFeatures(obj);
+      });
+
+    // Set keys
+    api(`getKeys`)
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj))
+          this.setKeys(obj);
+      });
+
+    // Set key metadata
+    api(`getKeyMetadata`)
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj))
+          this.setKeyMetadata(obj);
+      });
+
+    // Get feedback
+    api(`getFeedback`)
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj))
+          this.setFeedback(obj);
+      });
+
+    // Get version
+    api(`getVersionInfo`)
+    .then((obj) => {
+      if (!uiStore.errorCheck(obj))
+        this.setVersion(obj);
+    });
+  }
 }
 
 const singleton = new DataStore();
-
-// Set developmentFeatures
-api(`getDevelopmentFeatures`)
-  .then((obj) => {
-    if (!uiStore.errorCheck(obj))
-      singleton.setDevelopmentFeatures(obj);
-  });
-
-// Set newFeatures
-api(`getNewFeatures`)
-  .then((obj) => {
-    if (!uiStore.errorCheck(obj))
-      singleton.setNewFeatures(obj);
-  });
-
-// Set keys
-api(`getKeys`)
-  .then((obj) => {
-    if (!uiStore.errorCheck(obj))
-      singleton.setKeys(obj);
-  });
-
-// Set key metadata
-api(`getKeyMetadata`)
-  .then((obj) => {
-    if (!uiStore.errorCheck(obj))
-      singleton.setKeyMetadata(obj);
-  });
-
-// Get feedback
-api(`getFeedback`)
-  .then((obj) => {
-    if (!uiStore.errorCheck(obj))
-      singleton.setFeedback(obj);
-  });
 
 export default singleton;

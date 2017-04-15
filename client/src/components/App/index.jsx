@@ -3,6 +3,7 @@ import { observer, inject } from 'mobx-react';
 
 import AppBar from 'material-ui/AppBar';
 import Snackbar from 'material-ui/Snackbar';
+import RaisedButton from 'material-ui/RaisedButton';
 
 import Version from '../Version';
 import Features from '../Features';
@@ -66,6 +67,7 @@ const App = ({ uiStore, dataStore }) => {
         <AppBar
           title={title}
           iconClassNameLeft={`none`}
+          iconElementRight={<RaisedButton label={`Logout`} primary onTouchTap={() => uiStore.logout()} />}
         />
       </div>
       {

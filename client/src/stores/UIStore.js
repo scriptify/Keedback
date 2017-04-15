@@ -33,9 +33,19 @@ class UIStore {
     this.position = pos;
   }
 
-  @action(`Set logged in`) setLoggedIn() {
-    this.loggedIn = true;
-    this.setMessage(`Logged in!`);
+  @action(`Set logged in`) setLoggedIn(l = true) {
+    this.loggedIn = l;
+    if (l)
+      this.setMessage(`Logged in!`);
+    else
+      this.setMessage(`Logged out.`);
+  }
+
+  @action(`logout`) logout() {
+    api(`logout`)
+      .then(() => {
+        this.setLoggedIn(false);
+      });
   }
 
   @action(`login`) login(username, password) {
@@ -44,8 +54,10 @@ class UIStore {
       password
     })
       .then((obj) => {
-        if (!this.errorCheck(obj))
+        if (!this.errorCheck(obj)) {
           this.setLoggedIn();
+          dataStore.setup();
+        }
       });
   }
 
@@ -65,8 +77,10 @@ const singleton = new UIStore();
 api(`isLoggedIn`)
   .then((obj) => {
     if (!singleton.errorCheck(obj)) {
-      if (obj.isLoggedIn)
+      if (obj.isLoggedIn) {
         singleton.setLoggedIn();
+        dataStore.setup();
+      }
     }
   });
 
