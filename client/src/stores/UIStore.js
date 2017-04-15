@@ -77,7 +77,7 @@ const singleton = new UIStore();
 api(`isLoggedIn`)
   .then((obj) => {
     if (!singleton.errorCheck(obj)) {
-      if (obj.isLoggedIn) {
+      if (obj.isLoggedIn && obj.isAdmin) {
         singleton.setLoggedIn();
         dataStore.setup();
       }

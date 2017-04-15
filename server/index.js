@@ -312,6 +312,7 @@ app.post(`/api/:method`, (req, res) => {
 
     case `isLoggedIn`: {
       res.json({
+        isAdmin: req.cookies && req.cookies.session && req.cookies.session.isAdmin,
         isLoggedIn: (req.cookies && req.cookies.session && req.cookies.session.UID !== null && req.cookies.session.UID !== undefined)
       });
       break;
