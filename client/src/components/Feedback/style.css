@@ -2,4 +2,9 @@
 
 .feedback {
   overflow-y: auto;
+
+  & .card {
+    padding: 10px;
+  }
+
 }

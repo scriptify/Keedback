@@ -1,5 +1,7 @@
 import React from 'react';
-import { Card, CardActions, CardHeader, CardText } from 'material-ui/Card';
+import { inject, observer } from 'mobx-react';
+
+import { Card, CardActions, CardHeader, CardText, CardTitle } from 'material-ui/Card';
 import RaisedButton from 'material-ui/RaisedButton';
 
 import errorIcon from '../../icons/error.svg';
@@ -8,33 +10,64 @@ import experienceIcon from '../../icons/experience.svg';
 
 import './style.css';
 
-const TestCard = ({ icon }) => (
-  <Card>
-    <CardHeader
-      title="Without Avatar"
-      subtitle="Subtitle"
-      avatar={icon}
-      actAsExpander
-      showExpandableButton
-    />
-    <CardActions>
-      <RaisedButton primary label="Done" />
-    </CardActions>
-    <CardText expandable>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-      Donec mattis pretium massa. Aliquam erat volutpat. Nulla facilisi.
-      Donec vulputate interdum sollicitudin. Nunc lacinia auctor quam sed pellentesque.
-      Aliquam dui mauris, mattis quis lacus id, pellentesque lobortis odio.
-    </CardText>
-  </Card>
-);
+const FeedbackCard = ({ type, title, text, onDone = () => {}, processed, email }) => {
+  let icon;
 
-const Feedback = () => (
+  switch (type) {
+    case 0:
+      icon = errorIcon;
+      break;
+    case 1:
+      icon = ideaIcon;
+      break;
+    case 2:
+      icon = experienceIcon;
+      break;
+    default:
+      icon = errorIcon;
+  }
+
+  return (
+    <div className={`card`}>
+      <Card>
+        <CardHeader
+          title={title}
+          subtitle={`${text.substring(0, 30)}...`}
+          avatar={icon}
+          actAsExpander
+          showExpandableButton
+        />
+        <CardActions>
+          <RaisedButton disabled={processed === 1} primary label="Done" onTouchTap={onDone} />
+        </CardActions>
+        {
+          email &&
+            <CardTitle subtitle={`From: ${email}`} />
+        }
+        <CardText expandable>
+          {text}
+        </CardText>
+      </Card>
+    </div>
+  );
+};
+
+const Feedback = ({ dataStore }) => (
   <div className={`feedback`}>
-    <TestCard icon={errorIcon} />
-    <TestCard icon={ideaIcon} />
-    <TestCard icon={experienceIcon} />
+    {
+      dataStore.feedback.map(({ FBID, title, userText, processed, type, email }) => (
+        <FeedbackCard
+          key={FBID}
+          title={title}
+          text={userText}
+          processed={processed}
+          type={type}
+          onDone={() => dataStore.processFeedback(FBID)}
+          email={email}
+        />
+      ))
+    }
   </div>
 );
 
-export default Feedback;
+export default inject(`uiStore`, `dataStore`)(observer(Feedback));

@@ -16,6 +16,27 @@ import './style.css';
 
 const App = ({ uiStore, dataStore }) => {
   const { position, loggedIn, showMessage, message, addFeatureMode } = uiStore;
+  let title;
+
+  switch (position) {
+    case 0:
+      title = `Features`;
+      break;
+    case 1:
+      title = `Keys`;
+      break;
+    case 2:
+      title = `Feedback`;
+      break;
+    case 3:
+      title = `Version`;
+      break;
+
+    default:
+      title = `How did you get there?`;
+      break;
+  }
+
   const MsgBar = (
     <Snackbar
       open={showMessage}
@@ -43,7 +64,7 @@ const App = ({ uiStore, dataStore }) => {
       { MsgBar }
       <div className={`title-bar`}>
         <AppBar
-          title={`Features`}
+          title={title}
           iconClassNameLeft={`none`}
         />
       </div>
@@ -67,7 +88,7 @@ const App = ({ uiStore, dataStore }) => {
         position === 3 &&
           <Version />
       }
-      <Navigation position={position} onChange={p => uiStore.setPosition(p)} />
+      <Navigation position={position} onChange={p => uiStore.setPosition(p)} unprocessedFeedbackNum={dataStore.unprocessedFeedbackNum} />
     </div>
   );
 };

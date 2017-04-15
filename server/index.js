@@ -280,11 +280,12 @@ app.post(`/api/:method`, (req, res) => {
       break;
     }
 
-    case `createFeddback`: {
+    case `createFeedback`: {
       requireLogin(req, res);
       const { title, text, type, email } = req.body;
 
       const promise = query(`INSERT INTO Feedback SET ?;`, {
+        UID: req.cookies.session.UID,
         title,
         userText: text,
         type,

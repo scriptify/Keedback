@@ -10,11 +10,12 @@ import './style.css';
 
 import FeatureAdder from '../FeatureAdder';
 
-const FeatureCard = ({ title, description, isDev = true, onDelete = () => {}, onMoveToDevelopmentStage = () => {} }) => (
+const FeatureCard = ({ title, subtitle = ``, description, isDev = true, onDelete = () => {}, onMoveToDevelopmentStage = () => {} }) => (
   <div className={`card`}>
     <Card>
       <CardHeader
         title={title}
+        subtitle={subtitle}
         actAsExpander
         showExpandableButton
       />
@@ -77,12 +78,13 @@ export default class Feature extends Component {
           </div>
           <div className={`cards`}>
             {
-              dataStore.newFeatures.map(({ NFID, title, description }) =>
+              dataStore.newFeatures.map(({ NFID, title, description, votes }) =>
                 <FeatureCard
                   title={title}
                   description={description}
                   key={NFID}
                   isDev={false}
+                  subtitle={`${votes} votes`}
                   onDelete={() => dataStore.deleteNewFeature(NFID)}
                   onMoveToDevelopmentStage={() => dataStore.moveNewFeatureToDevelopmentStage(NFID)}
                 />

@@ -149,6 +149,41 @@ class DataStore {
         }
       });
   }
+
+  @action(`set feedback`) setFeedback(f) {
+    this.feedback = f.sort((f1, f2) => {
+      if (!f1.processed && f2.processed)
+        return -1;
+
+      if (!f2.processed && f1.processed)
+        return 1;
+
+      return 0;
+    });
+  }
+
+  @action(`process feedback`) processFeedback(FBID) {
+    api(`processFeedback`, { FBID })
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj)) {
+          this.feedback = this.feedback.map((f) => {
+            if (f.FBID === FBID) {
+              return {
+                ...f,
+                processed: 1
+              };
+            }
+            return f;
+          });
+
+          uiStore.setMessage(`Feedback was processed.`);
+        }
+      });
+  }
+
+  @computed get unprocessedFeedbackNum() {
+    return this.feedback.filter(f => !f.processed).length;
+  }
 }
 
 const singleton = new DataStore();
@@ -179,6 +214,13 @@ api(`getKeyMetadata`)
   .then((obj) => {
     if (!uiStore.errorCheck(obj))
       singleton.setKeyMetadata(obj);
+  });
+
+// Get feedback
+api(`getFeedback`)
+  .then((obj) => {
+    if (!uiStore.errorCheck(obj))
+      singleton.setFeedback(obj);
   });
 
 export default singleton;

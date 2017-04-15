@@ -14,7 +14,7 @@ const keyIcon = <KeyIcon />;
 const feedbackIcon = <FeedbackIcon />;
 const versionIcon = <VersionIcon />;
 
-const Navigation = ({ position, onChange = () => {} }) => (
+const Navigation = ({ unprocessedFeedbackNum, position, onChange = () => {} }) => (
 
   <Paper zDepth={1}>
     <BottomNavigation selectedIndex={position}>
@@ -29,7 +29,7 @@ const Navigation = ({ position, onChange = () => {} }) => (
         onTouchTap={() => onChange(1)}
       />
       <BottomNavigationItem
-        label={`Feedback (2)`}
+        label={`Feedback (${unprocessedFeedbackNum})`}
         icon={feedbackIcon}
         onTouchTap={() => onChange(2)}
       />
