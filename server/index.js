@@ -171,14 +171,21 @@ app.post(`/api/:method`, (req, res) => {
       });
       handleQueryPromise(promise, res, (rows) => {
         const promise1 = query(`INSERT INTO DevelopmentFeature SET FID = ?;`, [rows.insertId]);
-        handleQueryPromise(promise1, res);
+        handleQueryPromise(promise1, res, (rows1) => {
+          const DFID = rows1.insertId;
+          res.json({
+            DFID,
+            title,
+            description
+          });
+        });
       });
       break;
     }
 
     case `getDevelopmentFeatures`: {
       requireLogin(req, res);
-      const promise = query(`SELECT * FROM DevelopmentFeature NATURAL JOIN Feature;`);
+      const promise = query(`SELECT DFID, title, description  FROM DevelopmentFeature NATURAL JOIN Feature;`);
       handleQueryPromise(promise, res, rows => res.json(rows));
       break;
     }
@@ -192,14 +199,23 @@ app.post(`/api/:method`, (req, res) => {
       });
       handleQueryPromise(promise, res, (rows) => {
         const promise1 = query(`INSERT INTO NewFeature SET FID = ?;`, [rows.insertId]);
-        handleQueryPromise(promise1, res);
+        handleQueryPromise(promise1, res, (rows1) => {
+          const NFID = rows1.insertId;
+          res.json({
+            NFID,
+            title,
+            description,
+            votes: 0,
+            hasVoted: false
+          });
+        });
       });
       break;
     }
 
     case `getNewFeatures`: {
       requireLogin(req, res);
-      const promise = query(`SELECT NFID, COUNT(NFID) AS votes FROM Vote AS v NATURAL JOIN (SELECT * FROM NewFeature NATURAL JOIN Feature) AS temp GROUP BY NFID;`);
+      const promise = query(`SELECT NFID, title, description, COUNT(VID) AS votes FROM Vote AS v NATURAL RIGHT OUTER JOIN (SELECT * FROM NewFeature NATURAL JOIN Feature) AS temp GROUP BY NFID;`);
       handleQueryPromise(promise, res, (features) => {
         const promise1 = query(`SELECT NFID FROM Vote WHERE UID = ?;`, [req.cookies.session.UID]);
         handleQueryPromise(promise1, res, (votes) => {
@@ -227,9 +243,11 @@ app.post(`/api/:method`, (req, res) => {
           error(res, `No such new feature!`);
         const { FID } = rows[0];
         const promise1 = query(`DELETE FROM NewFeature WHERE NFID = ?;`, [NFID]);
-        handleQueryPromise(res, promise1, () => {
+        handleQueryPromise(promise1, res, () => {
           const promise2 = query(`INSERT INTO DevelopmentFeature SET FID = ?;`, [FID]);
-          handleQueryPromise(res, promise2);
+          handleQueryPromise(promise2, res, (rows1) => {
+            res.json({ DFID: rows1.insertId });
+          });
         });
       });
       break;

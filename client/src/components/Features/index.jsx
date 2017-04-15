@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { observer, inject } from 'mobx-react';
 
 import { Card, CardActions, CardHeader, CardText } from 'material-ui/Card';
 import RaisedButton from 'material-ui/RaisedButton';
@@ -9,29 +10,33 @@ import './style.css';
 
 import FeatureAdder from '../FeatureAdder';
 
-const TestCard = () => (
-  <Card>
-    <CardHeader
-      title="Without Avatar"
-      subtitle="Subtitle"
-      actAsExpander
-      showExpandableButton
-    />
-    <CardActions>
-      <RaisedButton primary label="Delete" />
-    </CardActions>
-    <CardText expandable>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-      Donec mattis pretium massa. Aliquam erat volutpat. Nulla facilisi.
-      Donec vulputate interdum sollicitudin. Nunc lacinia auctor quam sed pellentesque.
-      Aliquam dui mauris, mattis quis lacus id, pellentesque lobortis odio.
-    </CardText>
-  </Card>
+const FeatureCard = ({ title, description, isDev = true, onDelete = () => {}, onMoveToDevelopmentStage = () => {} }) => (
+  <div className={`card`}>
+    <Card>
+      <CardHeader
+        title={title}
+        actAsExpander
+        showExpandableButton
+      />
+      <CardActions>
+        <RaisedButton primary label="Delete" onTouchTap={onDelete} />
+        {
+          !isDev &&
+            <RaisedButton primary label="Move to development stage" onTouchTap={onMoveToDevelopmentStage} />
+        }
+      </CardActions>
+      <CardText expandable>
+        { description }
+      </CardText>
+    </Card>
+  </div>
 );
 
+@inject(`uiStore`, `dataStore`)
+@observer
 export default class Feature extends Component {
   render() {
-    const { addFeatureMode, onFeatureAdded, onAdd } = this.props;
+    const { addFeatureMode, onFeatureAdded, onAdd, dataStore } = this.props;
 
     if (addFeatureMode) {
       return (
@@ -51,9 +56,16 @@ export default class Feature extends Component {
             </FloatingActionButton>
           </div>
           <div className={`cards`}>
-            <div className={`card`}>
-              <TestCard />
-            </div>
+            {
+              dataStore.developmentFeatures.map(({ DFID, title, description }) =>
+                <FeatureCard
+                  title={title}
+                  description={description}
+                  key={DFID}
+                  onDelete={() => dataStore.deleteDevelopmentFeature(DFID)}
+                />
+              )
+            }
           </div>
         </div>
         <div className={`new`}>
@@ -64,9 +76,18 @@ export default class Feature extends Component {
             </FloatingActionButton>
           </div>
           <div className={`cards`}>
-            <div className={`card`}>
-              <TestCard />
-            </div>
+            {
+              dataStore.newFeatures.map(({ NFID, title, description }) =>
+                <FeatureCard
+                  title={title}
+                  description={description}
+                  key={NFID}
+                  isDev={false}
+                  onDelete={() => dataStore.deleteNewFeature(NFID)}
+                  onMoveToDevelopmentStage={() => dataStore.moveNewFeatureToDevelopmentStage(NFID)}
+                />
+              )
+            }
           </div>
         </div>
       </div>
