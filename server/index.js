@@ -19,7 +19,8 @@ function generateKeys(num, res) {
   for (let i = 0; i < num; i++) {
     const currKey = v4();
     const obj = {
-      value: currKey
+      value: currKey,
+      takenBy: null
     };
     keys.push(obj);
     const promise = query(`INSERT INTO AccessKey SET ?;`, obj);
@@ -312,6 +313,13 @@ app.post(`/api/:method`, (req, res) => {
       res.json({
         isLoggedIn: (req.cookies && req.cookies.session && req.cookies.session.UID !== null && req.cookies.session.UID !== undefined)
       });
+      break;
+    }
+
+    case `getKeyMetadata`: {
+      requireLogin(req, res, true);
+      const promise = query(`SELECT * FROM KeyManagement;`);
+      handleQueryPromise(promise, res, rows => res.json(rows[0]));
       break;
     }
 

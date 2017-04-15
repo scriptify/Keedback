@@ -14,9 +14,70 @@ class DataStore {
   @observable newFeatures = [];
   @observable feedback = [];
   @observable keys = [];
+  @observable maxKeys = 0;
+  @observable returnOnRegisterKeys = 0;
 
-  @computed get usedKeys() {
-    return this.keys.filter(key => !key.takenBy).length;
+  @computed get numUsedKeys() {
+    return this.keys.filter(key => key.takenBy).length;
+  }
+
+  @action(`Set keys`) setKeys(k) {
+    this.keys = k;
+    this.sortKeys(uiStore.keysOrder);
+  }
+
+  @action(`Set key metadata`) setKeyMetadata({ maxKeys, returnOnRegister }) {
+    this.maxKeys = maxKeys;
+    this.returnOnRegisterKeys = returnOnRegister;
+  }
+
+  @action(`Set return on register key num`) setReturnOnRegisterKeyNum(num) {
+    api(`setReturnOnRegisterKeyNum`, { num })
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj)) {
+          uiStore.setMessage(`Newly registered users will now get ${num} keys.`);
+          this.returnOnRegisterKeys = num;
+        }
+      });
+  }
+
+  @action(`set max key num`) setMaxKeys(num) {
+    api(`setMaxKeys`, { num })
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj)) {
+          uiStore.setMessage(`Up to ${num} keys can be generated now.`);
+          this.maxKeys = num;
+        }
+      });
+  }
+
+  @action sortKeys(order = `free`) {
+    this.keys = this.keys.sort((key1, key2) => {
+      if (key1.takenBy === null && key2.takenBy !== null) {
+        if (order === `free`)
+          return -1;
+        return 1;
+      }
+
+      if (key1.takenBy !== null && key2.takenBy === null) {
+        if (order === `free`)
+          return 1;
+        return -1;
+      }
+
+      return 0;
+    });
+  }
+
+  @action(`generate keys`) generateKeys(num) {
+    api(`generateKeys`, { num })
+      .then((obj) => {
+        if (!uiStore.errorCheck(obj)) {
+          uiStore.setMessage(`${num} keys were generated.`);
+          this.keys = this.keys.concat(obj);
+          this.sortKeys(uiStore.keysOrder);
+        }
+      });
   }
 
   @action(`Set development features`) setDevelopmentFeatures(f) {
@@ -104,6 +165,20 @@ api(`getNewFeatures`)
   .then((obj) => {
     if (!uiStore.errorCheck(obj))
       singleton.setNewFeatures(obj);
+  });
+
+// Set keys
+api(`getKeys`)
+  .then((obj) => {
+    if (!uiStore.errorCheck(obj))
+      singleton.setKeys(obj);
+  });
+
+// Set key metadata
+api(`getKeyMetadata`)
+  .then((obj) => {
+    if (!uiStore.errorCheck(obj))
+      singleton.setKeyMetadata(obj);
   });
 
 export default singleton;

@@ -1,5 +1,6 @@
 import { observable, action } from 'mobx';
 import api from './api';
+import dataStore from './DataStore';
 
 class UIStore {
   @observable position = 0;
@@ -8,6 +9,7 @@ class UIStore {
   @observable showMessage = false;
   @observable addFeatureMode = false;
   @observable addFeatureType = `dev`;
+  @observable keysOrder = `free`;
 
   errorCheck(obj) {
     if (obj.error) {
@@ -15,6 +17,11 @@ class UIStore {
       return true;
     }
     return false;
+  }
+
+  @action setKeysOrder(order = `free`) {
+    this.keysOrder = order;
+    dataStore.sortKeys(order);
   }
 
   @action(`Toggle addFeatureMode`) toggleAddFeatureMode(type = `dev`) {
