@@ -16,6 +16,9 @@
     "no-use-before-define": 1,
     "no-shadow": 1,
     "no-console": 0,
-    "react/prop-types": 0
+    "react/prop-types": 0,
+    "import/no-extraneous-dependencies": 0,
+    "import/no-unresolved": 0,
+    "import/extensions": 0
   }
 }

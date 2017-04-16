@@ -4,9 +4,11 @@
   "description": "Making the user a part of the software development process.",
   "main": "index.js",
   "scripts": {
-    "start:dev": "webpack-dev-server",
-    "start:devserver": "nodemon server/index.js 3000",
-    "start:prod": "webpack"
+    "start:dev:login": "webpack-dev-server",
+    "start:dev:admin": "webpack-dev-server",
+    "start:dev:server": "nodemon server/index.js 3000",
+    "start:prod:login": "webpack",
+    "start:prod:admin": "webpack"
   },
   "keywords": [],
   "author": "Maximilian Torggler",

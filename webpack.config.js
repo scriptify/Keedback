@@ -7,14 +7,54 @@ const cssnext = require(`postcss-cssnext`);
 const HtmlWebpackExcludeAssetsPlugin = require(`html-webpack-exclude-assets-plugin`);
 const HtmlWebpackPlugin = require(`html-webpack-plugin`);
 
+const TARGET = process.env.npm_lifecycle_event;
 
-const PATHS = {
-  app: path.join(__dirname, `client/src`),
-  build: path.join(__dirname, `client/build`),
-  assets: path.join(__dirname, `assets`)
+function getPaths(t, clientPaths) {
+  const paths = {
+    mode: `dev`,
+    name: ``,
+    app: ``,
+    build: ``,
+    toProcess: [],
+    shared: clientPaths.shared
+  };
+
+  if (t.indexOf(`prod`) !== -1)
+    paths.mode = `prod`;
+
+  if (t.indexOf(`login`) !== -1) {
+    paths.name = `login`;
+    paths.app = clientPaths.login.src;
+    paths.build = clientPaths.login.build;
+  }
+
+  if (t.indexOf(`admin`) !== -1) {
+    paths.name = `admin`;
+    paths.app = clientPaths.admin.src;
+    paths.build = clientPaths.admin.build;
+  }
+
+  paths.toProcess.push(paths.app);
+  paths.toProcess.push(clientPaths.shared);
+
+  return paths;
+}
+
+const CLIENT_PATHS = {
+  admin: {
+    src: path.join(__dirname, `clients/admin-panel/src`),
+    build: path.join(__dirname, `clients/admin-panel/build`)
+  },
+  login: {
+    src: path.join(__dirname, `clients/login/src`),
+    build: path.join(__dirname, `clients/login/build`)
+  },
+  shared: path.join(__dirname, `clients/shared`)
 };
 
-const TARGET = process.env.npm_lifecycle_event;
+const PATHS = Object.assign({}, getPaths(TARGET, CLIENT_PATHS), {
+  assets: path.join(__dirname, `assets`)
+});
 
 const COMMON_CONFIGURATION = {
   entry: {
@@ -25,7 +65,8 @@ const COMMON_CONFIGURATION = {
     alias: {
       components: path.resolve(PATHS.app, `components`),
       icons: path.resolve(PATHS.app, `icons`),
-      stores: path.resolve(PATHS.app, `stores`)
+      stores: path.resolve(PATHS.app, `stores`),
+      shared: PATHS.shared
     }
   },
   output: {
@@ -36,7 +77,7 @@ const COMMON_CONFIGURATION = {
     rules: [
       {
         test: /\.css$/,
-        include: [PATHS.app],
+        include: PATHS.toProcess,
         use: [
           {
             loader: `style-loader`
@@ -52,7 +93,7 @@ const COMMON_CONFIGURATION = {
       {
         test: /\.jsx?$/,
         loader: `babel-loader`,
-        include: PATHS.app,
+        include: PATHS.toProcess,
         options: {
           cacheDirectory: true
         }
@@ -75,13 +116,13 @@ const COMMON_CONFIGURATION = {
             }
           }
         ],
-        include: PATHS.app
+        include: PATHS.toProcess
       }
     ]
   },
   plugins: [
     new webpack.DefinePlugin({
-      ENVIRONMENT: JSON.stringify(TARGET === `start:dev` ? `development` : `production`)
+      ENVIRONMENT: JSON.stringify(PATHS.mode === `dev` ? `development` : `production`)
     }),
     new webpack.LoaderOptionsPlugin({
       test: /\.(jpe?g|png|gif|svg)$/i,
@@ -102,7 +143,7 @@ const COMMON_CONFIGURATION = {
         postcss: {
           plugins: [
             cssImport({
-              path: PATHS.app,
+              path: PATHS.toProcess,
               addDependencyTo: webpack
             }),
             cssnext
@@ -118,8 +159,8 @@ const COMMON_CONFIGURATION = {
   ]
 };
 
-switch (TARGET) {
-  case `start:dev`:
+switch (PATHS.mode) {
+  case `dev`:
     module.exports = merge(COMMON_CONFIGURATION, {
       devServer: {
         contentBase: PATHS.build,
@@ -139,7 +180,7 @@ switch (TARGET) {
       devtool: `eval-source-map`
     });
     break;
-  case `start:prod`:
+  case `prod`:
     module.exports = merge(COMMON_CONFIGURATION, {
       plugins: [
         new webpack.DefinePlugin({

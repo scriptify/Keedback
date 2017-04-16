@@ -1,7 +1,7 @@
 import { observable, action, computed } from 'mobx';
 
+import api from 'shared/api';
 import uiStore from './UIStore';
-import api from './api';
 
 class DataStore {
   @observable version = {
