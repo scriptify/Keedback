@@ -10,11 +10,40 @@ const { query, error, handleQueryPromise, requireLogin } = require(`./util.js`);
 const app = express();
 const loginAppPath = path.join(__dirname, `../clients/login/build`);
 const adminAppPath = path.join(__dirname, `../clients/admin-panel/build`);
+const clientAppPath = path.join(__dirname, `../clients/client/build`);
+const publicAppPath = path.join(__dirname, `../public/`);
 
 app.use(bodyParser.json());
 app.use(cookieParser(`unicorns like red black'n'red cookies. unicors know what they do`));
+
+app.use(`/admin`, (req, res, next) => {
+  const isAdmin = req.cookies && req.cookies.session && req.cookies.session.isAdmin;
+  const isLoggedIn = (req.cookies && req.cookies.session && req.cookies.session.UID !== null && req.cookies.session.UID !== undefined);
+  if (!isLoggedIn || !isAdmin)
+    res.redirect(`/login?admin`);
+  else
+    next();
+});
 app.use(`/admin`, express.static(adminAppPath));
+
 app.use(`/login`, express.static(loginAppPath));
+app.use(`/client`, (req, res, next) => {
+  const isLoggedIn = (req.cookies && req.cookies.session && req.cookies.session.UID !== null && req.cookies.session.UID !== undefined);
+  if (!isLoggedIn)
+    res.redirect(`/login?client`);
+  else
+    next();
+});
+app.use(`/client`, express.static(clientAppPath));
+
+app.use(`/`, (req, res, next) => {
+  const isLoggedIn = (req.cookies && req.cookies.session && req.cookies.session.UID !== null && req.cookies.session.UID !== undefined);
+  if (!isLoggedIn && req.path === `/`)
+    res.redirect(`/login`);
+  else
+    next();
+});
+app.use(`/`, express.static(publicAppPath));
 
 function generateKeys(num, res) {
   const promises = [];

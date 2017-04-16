@@ -4,7 +4,6 @@ import dataStore from './DataStore';
 
 class UIStore {
   @observable position = 0;
-  @observable loggedIn = false;
   @observable message = ``;
   @observable showMessage = false;
   @observable addFeatureMode = false;
@@ -33,20 +32,11 @@ class UIStore {
     this.position = pos;
   }
 
-  @action(`Set logged in`) setLoggedIn(l = true) {
-    this.loggedIn = l;
-    if (l)
-      this.setMessage(`Logged in!`);
-    else {
-      this.setMessage(`Logged out.`);
-      window.location.reload();
-    }
-  }
-
   @action(`logout`) logout() {
     api(`logout`)
       .then(() => {
-        this.setLoggedIn(false);
+        this.setMessage(`Logging out...`);
+        window.location.reload();
       });
   }
 
@@ -62,18 +52,6 @@ class UIStore {
 
 const singleton = new UIStore();
 
-// Look if user is already logged in
-api(`isLoggedIn`)
-  .then((obj) => {
-    if (!singleton.errorCheck(obj)) {
-      if (obj.isLoggedIn && obj.isAdmin) {
-        singleton.setLoggedIn();
-        dataStore.setup();
-      } else {
-        singleton.setMessage(`Redirecting to login...`);
-        window.location.href = `/login/?admin`;
-      }
-    }
-  });
+dataStore.setup();
 
 export default singleton;

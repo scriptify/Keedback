@@ -14,7 +14,7 @@ import Navigation from '../Navigation';
 import './style.css';
 
 const App = ({ uiStore, dataStore }) => {
-  const { position, loggedIn, showMessage, message, addFeatureMode } = uiStore;
+  const { position, showMessage, message, addFeatureMode } = uiStore;
   let title;
 
   switch (position) {
@@ -44,14 +44,6 @@ const App = ({ uiStore, dataStore }) => {
       onRequestClose={() => uiStore.hideMessage()}
     />
   );
-
-  if (!loggedIn) {
-    return (
-      <div>
-        { MsgBar }
-      </div>
-    );
-  }
 
   return (
     <div className={`app`}>

@@ -34,16 +34,25 @@ export default class Login extends Component {
   }
 
   render() {
-    let type = `admin`;
+    let type = ``;
     let greet;
 
     if (window.location.href.indexOf(`client`) !== -1)
       type = `client`;
 
+    if (window.location.href.indexOf(`admin`) !== -1)
+      type = `admin`;
+
     switch (type) {
       case `client`:
         greet = (
           <h1>User area</h1>
+        );
+        break;
+
+      case ``:
+        greet = (
+          <h1>Welcome!</h1>
         );
         break;
 
@@ -56,7 +65,7 @@ export default class Login extends Component {
     return (
       <div className={`login`}>
         { greet }
-        <h2>Please login.</h2>
+        <h2>Please login to gain access.</h2>
         {
           this.state.error !== `` &&
             <h3>{this.state.error}</h3>

@@ -6,9 +6,11 @@
   "scripts": {
     "start:dev:login": "webpack-dev-server",
     "start:dev:admin": "webpack-dev-server",
+    "start:dev:client": "webpack-dev-server",
     "start:dev:server": "nodemon server/index.js 3000",
     "start:prod:login": "webpack",
-    "start:prod:admin": "webpack"
+    "start:prod:admin": "webpack",
+    "start:prod:client": "webpack"
   },
   "keywords": [],
   "author": "Maximilian Torggler",

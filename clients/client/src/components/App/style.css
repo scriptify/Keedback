@@ -1,0 +1,53 @@
+@import "../base.css";
+
+.app {
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+
+  & .title-bar {
+    height: 64px;
+  }
+
+  & .welcome-text {
+    font-size: 40pt;
+    color: #EC407A;
+    text-align: center;
+    font-weight: 100;
+  }
+
+  & .features {
+    display: flex;
+    justify-content: space-around;
+    overflow-y: auto;
+    & .list {
+      width: 48%;
+      & .title {
+        display: flex;
+        flex-flow: column;
+        justify-content: center;
+        align-items: center;
+        color: #FFF;
+        height: 150px;
+
+        & h1 {
+          font-weight: 100;
+          color: #64B5F6;
+        }
+      }
+    }
+  }
+
+  & .footer {
+    height: 100px;
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+    background: red;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+}

@@ -34,6 +34,12 @@ function getPaths(t, clientPaths) {
     paths.build = clientPaths.admin.build;
   }
 
+  if (t.indexOf(`client`) !== -1) {
+    paths.name = `client`;
+    paths.app = clientPaths.client.src;
+    paths.build = clientPaths.client.build;
+  }
+
   paths.toProcess.push(paths.app);
   paths.toProcess.push(clientPaths.shared);
 
@@ -48,6 +54,10 @@ const CLIENT_PATHS = {
   login: {
     src: path.join(__dirname, `clients/login/src`),
     build: path.join(__dirname, `clients/login/build`)
+  },
+  client: {
+    src: path.join(__dirname, `clients/client/src`),
+    build: path.join(__dirname, `clients/client/build`)
   },
   shared: path.join(__dirname, `clients/shared`)
 };
