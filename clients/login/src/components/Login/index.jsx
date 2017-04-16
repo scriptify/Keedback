@@ -73,7 +73,7 @@ export default class Login extends Component {
             })
               .then((obj) => {
                 if (!obj.error)
-                  window.location.reload();
+                  window.location.href = `/${type}`;
                 else {
                   this.setState({
                     ...this.state,

@@ -171,7 +171,8 @@ switch (PATHS.mode) {
         host: `0.0.0.0`,
         https: false,
         proxy: {
-          '/api': `http://localhost:3000`
+          '/api': `http://localhost:3000`,
+          '/login': `http://localhost:3000`
         }
       },
       plugins: [

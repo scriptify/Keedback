@@ -37,27 +37,16 @@ class UIStore {
     this.loggedIn = l;
     if (l)
       this.setMessage(`Logged in!`);
-    else
+    else {
       this.setMessage(`Logged out.`);
+      window.location.reload();
+    }
   }
 
   @action(`logout`) logout() {
     api(`logout`)
       .then(() => {
         this.setLoggedIn(false);
-      });
-  }
-
-  @action(`login`) login(username, password) {
-    api(`login`, {
-      username,
-      password
-    })
-      .then((obj) => {
-        if (!this.errorCheck(obj)) {
-          this.setLoggedIn();
-          dataStore.setup();
-        }
       });
   }
 
@@ -80,6 +69,9 @@ api(`isLoggedIn`)
       if (obj.isLoggedIn && obj.isAdmin) {
         singleton.setLoggedIn();
         dataStore.setup();
+      } else {
+        singleton.setMessage(`Redirecting to login...`);
+        window.location.href = `/login/?admin`;
       }
     }
   });

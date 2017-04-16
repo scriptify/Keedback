@@ -8,10 +8,13 @@ const path = require(`path`);
 const { query, error, handleQueryPromise, requireLogin } = require(`./util.js`);
 
 const app = express();
+const loginAppPath = path.join(__dirname, `../clients/login/build`);
+const adminAppPath = path.join(__dirname, `../clients/admin-panel/build`);
 
 app.use(bodyParser.json());
 app.use(cookieParser(`unicorns like red black'n'red cookies. unicors know what they do`));
-app.use(`/admin`, express.static(path.join(__dirname, `../client/build`)));
+app.use(`/admin`, express.static(adminAppPath));
+app.use(`/login`, express.static(loginAppPath));
 
 function generateKeys(num, res) {
   const promises = [];

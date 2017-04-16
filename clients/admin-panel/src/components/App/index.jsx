@@ -11,8 +11,6 @@ import Keys from '../Keys';
 import Feedback from '../Feedback';
 import Navigation from '../Navigation';
 
-import Login from '../Login';
-
 import './style.css';
 
 const App = ({ uiStore, dataStore }) => {
@@ -51,11 +49,6 @@ const App = ({ uiStore, dataStore }) => {
     return (
       <div>
         { MsgBar }
-        <Login
-          onLogin={(username, password) => {
-            uiStore.login(username, password);
-          }}
-        />
       </div>
     );
   }
