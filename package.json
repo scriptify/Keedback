@@ -2,7 +2,7 @@
   "name": "keedback",
   "version": "0.0.1",
   "description": "Making the user a part of the software development process.",
-  "main": "index.js",
+  "main": "server/index.js",
   "scripts": {
     "start:dev:login": "webpack-dev-server",
     "start:dev:admin": "webpack-dev-server",
@@ -11,6 +11,9 @@
     "start:prod:login": "webpack",
     "start:prod:admin": "webpack",
     "start:prod:client": "webpack"
+  },
+  "bin": {
+    "keedback": "./server/index.js"
   },
   "keywords": [],
   "author": "Maximilian Torggler",

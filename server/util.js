@@ -1,4 +1,6 @@
 const mysql = require(`mysql`);
+const fs = require(`fs`);
+const path = require(`path`);
 const sqlDump = require(`./sql.js`);
 
 function error(res, msg) {
@@ -36,26 +38,44 @@ function requireLogin(req, res, admin = false) {
     error(res, `You don't have enough permissions to access this functionality.`);
 }
 
-const connection = mysql.createConnection({
-  host: `localhost`,
-  user: `root`,
-  password: `1234`,
-  database: `UserManagement`,
-  multipleStatements: true
-});
+function getKeedbackRc() {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path.join(process.cwd(), `.keedbackrc`), `utf8`, (err, data) => {
+      if (err)
+        reject(err);
 
-connection.connect((err) => {
-  if (err)
-    console.log(`Could not connect to database: ${err}`);
-});
+      const obj = JSON.parse(data);
 
-connection.query(sqlDump);
+      resolve(obj);
+      return true;
+    });
+  });
+}
+
+function connect({ host, user, password, database }) {
+  const connection = mysql.createConnection({
+    host,
+    user,
+    password,
+    database,
+    multipleStatements: true
+  });
+
+  connection.connect((err) => {
+    if (err)
+      console.log(`Could not connect to database: ${err}`);
+  });
+
+  connection.query(sqlDump);
+  return connection;
+}
 
 module.exports = {
-  query: query.bind(null, connection),
+  query,
   handleQueryPromise,
-  connection,
   error,
   queryError,
-  requireLogin
+  requireLogin,
+  getKeedbackRc,
+  connect
 };

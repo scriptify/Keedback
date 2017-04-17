@@ -23,7 +23,8 @@ class DataStore {
             if (f.NFID === NFID) {
               return {
                 ...f,
-                votes: f.votes + 1
+                votes: f.votes + 1,
+                hasVoted: true
               };
             }
             return f;
